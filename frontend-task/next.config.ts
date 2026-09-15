@@ -1,31 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ["192.168.29.212"],
   async rewrites() {
     return [
       {
-        source: "/api/session",
-        destination: "http://127.0.0.1:8000/api/session/",
-      },
-      {
-        source: "/api/session/",
-        destination: "http://127.0.0.1:8000/api/session/",
-      },
-      {
-        source: "/api/login",
-        destination: "http://127.0.0.1:8000/api/login/",
-      },
-      {
-        source: "/api/login/",
-        destination: "http://127.0.0.1:8000/api/login/",
-      },
-      {
-        source: "/api/signup",
-        destination: "http://127.0.0.1:8000/api/signup/",
-      },
-      {
-        source: "/api/signup/",
-        destination: "http://127.0.0.1:8000/api/signup/",
+        source: "/api/:path*",
+        destination: "http://127.0.0.1:8001/api/:path*/",
       },
     ];
   },

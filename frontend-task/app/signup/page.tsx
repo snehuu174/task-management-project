@@ -33,9 +33,10 @@ export default function SignupPage() {
     setMessage("");
 
     try {
-      const response = await fetch("/api/signup/", {
+      const response = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(formValues),
       });
       const data = await response.json().catch(() => ({}));
@@ -80,7 +81,7 @@ export default function SignupPage() {
           <p>Join Task Users and bring your next day into focus.</p>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form action="/signup" method="post" onSubmit={handleSubmit}>
           <label htmlFor="name">Full name</label>
           <input
             id="name"

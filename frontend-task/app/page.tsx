@@ -33,9 +33,10 @@ export default function Home() {
     setMessage("");
 
     try {
-      const response = await fetch("/api/login/", {
+      const response = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(formValues),
       });
       const data = await response.json().catch(() => ({}));
@@ -44,7 +45,7 @@ export default function Home() {
         throw new Error(data.message || "We could not log you in.");
       }
 
-      router.push("/dashboard");
+      router.replace("/dashboard");
     } catch (error) {
       setStatus("error");
       setMessage(
@@ -78,7 +79,7 @@ export default function Home() {
           <p>Enter your details to return to your workspace.</p>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form action="/" method="post" onSubmit={handleSubmit}>
           <label htmlFor="email">Email address</label>
           <input
             id="email"

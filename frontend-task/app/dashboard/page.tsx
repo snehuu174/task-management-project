@@ -21,7 +21,7 @@ export default function DashboardPage() {
   useEffect(() => {
     async function loadSession() {
       try {
-        const response = await fetch("/api/session/");
+        const response = await fetch("/api/session", { credentials: "include" });
         if (!response.ok) {
           router.replace("/");
           return;
@@ -65,6 +65,7 @@ export default function DashboardPage() {
         </Link>
         <nav className="dashboard-nav" aria-label="Main navigation">
           <a className="dashboard-nav-link active" href="#overview"><span>◈</span> Overview</a>
+          <Link className="dashboard-nav-link" href="/task/assign"><span>＋</span> Assign task</Link>
           <a className="dashboard-nav-link" href="#today"><span>○</span> My tasks</a>
           <a className="dashboard-nav-link" href="#projects"><span>□</span> Projects</a>
           <a className="dashboard-nav-link" href="#calendar"><span>▦</span> Calendar</a>
@@ -112,7 +113,7 @@ export default function DashboardPage() {
                 <p className="eyebrow">For today</p>
                 <h2 id="today-title">Your tasks</h2>
               </div>
-              <button className="quiet-button" type="button">+ Add task</button>
+              <Link className="quiet-button" href="/task/assign">+ Add task</Link>
             </div>
             <div className="task-list">
               {tasks.map((task) => (

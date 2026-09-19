@@ -4,19 +4,28 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const initialTasks = [
-  { id: 1, title: "Review product feedback", project: "Website refresh", time: "09:30", done: true },
-  { id: 2, title: "Outline the sprint priorities", project: "Planning", time: "11:00", done: false },
-  { id: 3, title: "Send notes to the design team", project: "Website refresh", time: "14:30", done: false },
-  { id: 4, title: "Prepare tomorrow's standup", project: "Team ritual", time: "16:00", done: false },
-];
+type Task = {
+  id: number;
+  title: string;
+  brief: string;
+  assignee: string;
+  project: string;
+  due_date: string | null;
+  priority: string;
+  priority_label: string;
+  status: string;
+  status_label: string;
+  created_by_name: string | null;
+};
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [tasks, setTasks] = useState(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [user, setUser] = useState<{ user_id: number; user_name: string } | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
-  const completedCount = tasks.filter((task) => task.done).length;
+  const [tasksLoading, setTasksLoading] = useState(true);
+  const [message, setMessage] = useState("");
+  const completedCount = tasks.filter((task) => task.status === "COMPLETED").length;
 
   useEffect(() => {
     async function loadSession() {
@@ -39,10 +48,57 @@ export default function DashboardPage() {
     loadSession();
   }, [router]);
 
-  function toggleTask(id: number) {
+  useEffect(() => {
+    async function loadTasks() {
+      try {
+        const response = await fetch("/api/tasks", { credentials: "include" });
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+        setTasks(data.tasks ?? []);
+      } finally {
+        setTasksLoading(false);
+      }
+    }
+
+    loadTasks();
+  }, []);
+
+  async function toggleTask(task: Task) {
+    const completed = task.status !== "COMPLETED";
     setTasks((current) =>
-      current.map((task) => (task.id === id ? { ...task, done: !task.done } : task)),
+      current.map((item) =>
+        item.id === task.id ? { ...item, status: completed ? "COMPLETED" : "TODO" } : item,
+      ),
     );
+    setMessage("");
+
+    try {
+      const response = await fetch(`/api/tasks/${task.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ status: completed ? "COMPLETED" : "TODO" }),
+      });
+      if (!response.ok) {
+        throw new Error("We could not update the task.");
+      }
+      const data = await response.json();
+      setTasks((current) =>
+        current.map((item) =>
+          item.id === task.id ? { ...item, status: data.task.status } : item,
+        ),
+      );
+    } catch (error) {
+      setTasks((current) =>
+        current.map((item) => (item.id === task.id ? task : item)),
+      );
+      setMessage(
+        error instanceof Error ? error.message : "Something went wrong. Please try again.",
+      );
+    }
   }
 
   if (sessionLoading || !user) {
@@ -66,9 +122,9 @@ export default function DashboardPage() {
         <nav className="dashboard-nav" aria-label="Main navigation">
           <a className="dashboard-nav-link active" href="#overview"><span>◈</span> Overview</a>
           <Link className="dashboard-nav-link" href="/task/assign"><span>＋</span> Assign task</Link>
-          <a className="dashboard-nav-link" href="#today"><span>○</span> My tasks</a>
+          <Link className="dashboard-nav-link active" href="/tasks"><span>○</span> My tasks</Link>
           <a className="dashboard-nav-link" href="#projects"><span>□</span> Projects</a>
-          <a className="dashboard-nav-link" href="#calendar"><span>▦</span> Calendar</a>
+          <Link className="dashboard-nav-link" href="/calendar"><span>▦</span> Calendar</Link>
         </nav>
         <div className="sidebar-footer">
           <p className="eyebrow">Workspace</p>
@@ -116,18 +172,33 @@ export default function DashboardPage() {
               <Link className="quiet-button" href="/task/assign">+ Add task</Link>
             </div>
             <div className="task-list">
-              {tasks.map((task) => (
-                <label className={`task-row ${task.done ? "completed" : ""}`} key={task.id}>
-                  <input type="checkbox" checked={task.done} onChange={() => toggleTask(task.id)} />
-                  <span className="custom-check" aria-hidden="true">{task.done ? "✓" : ""}</span>
-                  <span className="task-details">
-                    <strong>{task.title}</strong>
-                    <small>{task.project}</small>
-                  </span>
-                  <time>{task.time}</time>
-                </label>
-              ))}
+              {tasksLoading ? (
+                <p className="task-list-empty">Loading tasks...</p>
+              ) : tasks.length === 0 ? (
+                <p className="task-list-empty">
+                  No tasks yet. <Link className="quiet-button" href="/task/assign">Assign the first one</Link>
+                </p>
+              ) : (
+                tasks.map((task) => {
+                  const done = task.status === "COMPLETED";
+                  const detail = task.project || task.assignee || task.status_label;
+                  return (
+                    <label className={`task-row ${done ? "completed" : ""}`} key={task.id}>
+                      <input type="checkbox" checked={done} onChange={() => toggleTask(task)} />
+                      <span className="custom-check" aria-hidden="true">{done ? "✓" : ""}</span>
+                      <span className="task-details">
+                        <strong>{task.title}</strong>
+                        <small>{detail}</small>
+                      </span>
+                      <time>{task.priority_label}</time>
+                    </label>
+                  );
+                })
+              )}
             </div>
+            {message && (
+              <p className={`form-message error dashboard-message`} role="alert">{message}</p>
+            )}
           </section>
 
           <section className="upcoming-card" id="projects" aria-labelledby="upcoming-title">

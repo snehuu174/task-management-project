@@ -12,11 +12,14 @@ frontend-task/       Next.js frontend
     page.tsx         Login page
     signup/page.tsx  Signup page
     dashboard/page.tsx Dashboard page
+    tasks/page.tsx   All tasks list page
+    task/assign/page.tsx Assign task page
     globals.css      Shared application styles
   next.config.ts     API rewrites to Django
 
 task-management/    Django backend
   apps/task_user/    User model, authentication views, and API routes
+  apps/tasks/        Task model, CRUD views, and API routes
   backend_task/      Django project configuration
 ```
 
@@ -26,7 +29,9 @@ task-management/    Django backend
 | --- | --- | --- |
 | Login | `http://localhost:3000/` | Accepts email and password and logs a user in |
 | Signup | `http://localhost:3000/signup` | Creates a new Task User |
-| Dashboard | `http://localhost:3000/dashboard` | Displays the logged-in user's workspace |
+| Dashboard | `http://localhost:3000/dashboard` | Displays the logged-in user's workspace and their real tasks |
+| Tasks | `http://localhost:3000/tasks` | Lists, completes, and deletes the user's tasks |
+| Assign task | `http://localhost:3000/task/assign` | Creates a real task through the Django API |
 
 The dashboard retrieves the user's `user_id` and `user_name` from the Django session and uses them in the greeting, workspace label, member identifier, and avatar.
 
@@ -37,6 +42,13 @@ The dashboard retrieves the user's `user_id` and `user_name` from the Django ses
 | `POST` | `/api/signup/` | Creates a user with `name`, `email`, and `password` |
 | `POST` | `/api/login/` | Authenticates a user with `email` and `password` |
 | `GET` | `/api/session/` | Returns the current session user's ID and name |
+| `GET` | `/api/tasks/` | Lists all tasks |
+| `POST` | `/api/tasks/` | Creates a task with `title`, `brief`, `assignee`, `project`, `due_date`, and `priority` |
+| `GET` | `/api/tasks/<id>/` | Returns a single task |
+| `PATCH` | `/api/tasks/<id>/` | Partially updates a task (e.g. `status`, `priority`, `assignee`, `due_date`) |
+| `DELETE` | `/api/tasks/<id>/` | Deletes a task |
+
+Task statuses are `TODO`, `IN_PROGRESS`, `IN_REVIEW`, `COMPLETED`, and `CANCELLED`. Priorities are `LOW`, `MEDIUM`, `HIGH`, and `URGENT`.
 
 The frontend calls these paths through Next.js. Next.js rewrites them to Django at `http://127.0.0.1:8000`:
 

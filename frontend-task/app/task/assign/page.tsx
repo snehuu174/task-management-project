@@ -18,7 +18,7 @@ const initialValues: FormValues = {
   assignee: "",
   project: "",
   dueDate: "",
-  priority: "Medium",
+  priority: "MEDIUM",
   details: "",
 };
 
@@ -55,10 +55,42 @@ export default function AssignTaskPage() {
     setStatus("idle");
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setStatus("success");
-    setMessage(`Task assigned to ${formValues.assignee}.`);
+    setStatus("loading");
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          title: formValues.title,
+          assignee: formValues.assignee,
+          project: formValues.project,
+          due_date: formValues.dueDate,
+          priority: formValues.priority,
+          brief: formValues.details,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.message || "We could not create the task.");
+      }
+
+      setStatus("success");
+      setMessage(`Task assigned to ${formValues.assignee}.`);
+      router.push("/dashboard");
+    } catch (error) {
+      setStatus("error");
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again.",
+      );
+    }
   }
 
   if (!userName) {
@@ -75,8 +107,9 @@ export default function AssignTaskPage() {
         <nav className="dashboard-nav" aria-label="Main navigation">
           <Link className="dashboard-nav-link" href="/dashboard"><span>◈</span> Overview</Link>
           <Link className="dashboard-nav-link active" href="/task/assign"><span>＋</span> Assign task</Link>
+          <Link className="dashboard-nav-link" href="/tasks"><span>○</span> My tasks</Link>
           <a className="dashboard-nav-link" href="/dashboard#projects"><span>□</span> Projects</a>
-          <a className="dashboard-nav-link" href="/dashboard#calendar"><span>▦</span> Calendar</a>
+          <Link className="dashboard-nav-link" href="/calendar"><span>▦</span> Calendar</Link>
         </nav>
         <div className="sidebar-footer">
           <p className="eyebrow">Workspace</p>
@@ -123,9 +156,10 @@ export default function AssignTaskPage() {
             <div className="form-field">
               <label htmlFor="priority">Priority</label>
               <select id="priority" name="priority" value={formValues.priority} onChange={(event) => updateField("priority", event.target.value)}>
-                <option>Low</option>
-                <option>Medium</option>
-                <option>High</option>
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HIGH">High</option>
+                <option value="URGENT">Urgent</option>
               </select>
             </div>
             <div className="field-wide">

@@ -794,6 +794,65 @@ input:focus {
   font-weight: 700;
 }
 
+.tasks-page-card {
+  max-width: 860px;
+  margin-top: 0;
+}
+
+.task-list-empty {
+  padding: 18px 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.tasks-message,
+.dashboard-message {
+  margin: 0 0 18px;
+}
+
+.priority-tag {
+  flex: 0 0 auto;
+  padding: 3px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.priority-tag.urgent {
+  border-color: rgba(179, 74, 58, 0.45);
+  color: #b34a3a;
+}
+
+.priority-tag.high {
+  border-color: rgba(199, 125, 47, 0.45);
+  color: #a8641f;
+}
+
+.priority-tag.low {
+  border-color: rgba(40, 117, 90, 0.4);
+  color: #28755a;
+}
+
+.task-delete {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  opacity: 0.5;
+}
+
+.task-delete:hover {
+  color: #b34a3a;
+  opacity: 1;
+}
+
 @media (max-width: 760px) {
   .signup-page {
     display: block;
